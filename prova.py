@@ -21,7 +21,7 @@ def scelta_competionze():
     return markup
 
 #funzione per resituore le squadre di una competizione
-def competzione(comp):
+def competizione(comp):
     base_url = 'https://api.football-data.org/v4/competitions'
     
     url = f'{base_url}/{comp}/teams'
@@ -33,22 +33,22 @@ def competzione(comp):
     if response.status_code == 200:
         # Se la richiesta è stata fatta con successo, processare i dati
         data = response.json()
-        return data
+        team_names = [team['name'] for team in data['teams']]
+        return team_names
     else:
         # In caso di errore, stampare il codice di stato e il testo della risposta
         print(f"Errore {response.status_code}: {response.text}")
         return None
-     
-def serieA():
-    # Crea una tastiera inline
+
+#funzione per creare i bottoni con i nomi delle squadre params: id della competione    
+def crea_bottoni(comp):
     markup = telebot.types.InlineKeyboardMarkup()
-    btn1 = telebot.types.InlineKeyboardButton("Bottone 1", callback_data="btn1")
-    btn2 = telebot.types.InlineKeyboardButton("Bottone 2", callback_data="btn2")
-    btn3 = telebot.types.InlineKeyboardButton("Bottone 3", callback_data="btn3")
-    markup.add(btn1, btn2, btn3)
+    for team in competizione(comp):
+        btn = telebot.types.InlineKeyboardButton(team, callback_data="btn")
+        markup.add(btn)
     return markup
 
-# Funzione per gestire le callback dei bottoni
+#funzione per gestire le callback dei bottoni
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     if call.data == "btn1":
@@ -67,22 +67,23 @@ def start_command(message):
     
     bot.send_message(message.chat.id, messaggi.mss_introduzione_bot())    
     bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=scelta_competionze())
-
+    
+#scelta competione
 @bot.message_handler(func=lambda message: message.text in ["🏴󠁧󠁢󠁥󠁮󠁧󠁿Premier League", "🇮🇹Seria A","🇩🇪Bundesliga","🇪🇸La Liga","🇫🇷Ligue 1"])
 def option_selected(message):
 
     selected_option = message.text
      
     if selected_option == "🏴󠁧󠁢󠁥󠁮󠁧󠁿Premier League":
-        bot.send_message(message.chat.id, "Hai scelto l'Opzione 1!")
+        bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=crea_bottoni("PL"))            
     elif selected_option == "🇮🇹Seria A":
-            bot.send_message(message.chat.id, "Scegli un'opzione:", reply_markup=serieA())
+        bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=crea_bottoni("SA"))
     elif selected_option == "🇩🇪Bundesliga":
-        bot.send_message(message.chat.id, "Hai scelto l'Opzione 3!")
+        bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=crea_bottoni("BL1"))
     elif selected_option == "🇪🇸La Liga":
-        bot.send_message(message.chat.id, "Hai scelto l'Opzione 4!")
+        bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=crea_bottoni("PD"))
     elif selected_option == "🇫🇷Ligue 1":
-        bot.send_message(message.chat.id, "Hai scelto l'Opzione 5!")
+        bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=crea_bottoni("FL1"))
     
         
         
