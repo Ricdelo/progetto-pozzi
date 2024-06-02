@@ -22,8 +22,9 @@ def scelta_competionze():
     markup.add(button3,button4,button5)
     return markup
 
-def get_trofei(ogg):
-    None
+#funzione per prendere l ID di una squadra dal proprio nome
+def get_frotei(id_comp,id_squadra):
+    print(id)
     
     
 
@@ -40,8 +41,8 @@ def competizione(comp):
     if response.status_code == 200:
         #se richiesta va a buon fine salva tutti i team in una lista
         data = response.json()
-        team_names = [team['name'] for team in data['teams']]
-        return team_names
+        teams = [(team['name'], team['id']) for team in data['teams']]
+        return teams
     else:
         # In caso di errore, stampare il codice di stato e il testo della risposta
         print(f"Errore {response.status_code}: {response.text}")
@@ -51,16 +52,20 @@ def competizione(comp):
 def crea_bottoni(comp):
     markup = telebot.types.InlineKeyboardMarkup()
     for team in competizione(comp):
-        btn = telebot.types.InlineKeyboardButton(team, callback_data=team)
+        name, team_id = team
+        btn = telebot.types.InlineKeyboardButton(name, callback_data=comp+","+str(team_id))
         markup.add(btn)
     return markup
 
 #funzione per gestire le callback dei bottoni
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    get_trofei(call.data)
-    bot.answer_callback_query(call.id, f"You selected {call.data}")
-    #bot.answer_callback_query(call.id, "Hai premuto Bottone ")   
+    #come call data viene passata un astringa con competizione e id della squadra
+    parts = call.data.split(',')
+    if len(parts) == 2:
+        id_comp = parts[0]
+        id_squadra = parts[1]
+    get_frotei(id_comp,id_squadra)   
 
 
 
