@@ -24,6 +24,7 @@ def scelta_competionze():
 
 #funzione per prendere i trofei vinto nazionali
 def get_frotei_nazionali(id_squadra,id_area):
+    print(id_squadra+"  "+id_area)
     url="http://api.football-data.org/v4/competitions"
     headers = {'X-Auth-Token': API_TOKEN}
     params = {'areas': id_area}
@@ -66,7 +67,7 @@ def crea_bottoni(comp):
         area_id=team[0] #l id dell'area serve per calcolare i trofei della nazione di una squadra
         id_squadra = team[1]
         nome_squadra = team[2]
-        btn = telebot.types.InlineKeyboardButton(nome_squadra, callback_data=id_squadra+","+area_id)
+        btn = telebot.types.InlineKeyboardButton(nome_squadra, callback_data=str(id_squadra)+","+str(area_id))
         markup.add(btn)
     return markup
 
