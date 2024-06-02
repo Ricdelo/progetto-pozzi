@@ -22,10 +22,16 @@ def scelta_competionze():
     markup.add(button3,button4,button5)
     return markup
 
-#funzione per prendere l ID di una squadra dal proprio nome
-def get_frotei(id_comp,id_squadra):
-    print(id)
+#funzione per prendere i trofei vinto nazionali
+def get_frotei_nazionali(id_squadra,id_area):
+    url="http://api.football-data.org/v4/competitions"
+    headers = {'X-Auth-Token': API_TOKEN}
+    params = {'areas': id_area}
     
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        #se richiesta va a buon fine salva tutti i team in una lista
+        data = response.json()
     
 
 #funzione per resituore le squadre di una competizione
@@ -36,12 +42,17 @@ def competizione(comp):
     headers = {'X-Auth-Token': API_TOKEN}
     params = {'season': "2022"} #stagione 2022
     
-    response = requests.get(url, headers=headers, params=params)
-    
+    response = requests.get(url, headers=headers, params=params)    
     if response.status_code == 200:
         #se richiesta va a buon fine salva tutti i team in una lista
         data = response.json()
-        teams = [(team['name'], team['id']) for team in data['teams']]
+        #id dell'area, id della squadra e il nome della squadra
+        teams = []
+        for team in data['teams']:
+            area_id = team['area']['id']
+            id_squadra = team['id']
+            nome_squadra = team['name']
+            teams.append((area_id, id_squadra, nome_squadra))
         return teams
     else:
         # In caso di errore, stampare il codice di stato e il testo della risposta
@@ -52,8 +63,10 @@ def competizione(comp):
 def crea_bottoni(comp):
     markup = telebot.types.InlineKeyboardMarkup()
     for team in competizione(comp):
-        name, team_id = team
-        btn = telebot.types.InlineKeyboardButton(name, callback_data=comp+","+str(team_id))
+        area_id=team[0] #l id dell'area serve per calcolare i trofei della nazione di una squadra
+        id_squadra = team[1]
+        nome_squadra = team[2]
+        btn = telebot.types.InlineKeyboardButton(nome_squadra, callback_data=id_squadra+","+area_id)
         markup.add(btn)
     return markup
 
@@ -63,9 +76,9 @@ def callback_query(call):
     #come call data viene passata un astringa con competizione e id della squadra
     parts = call.data.split(',')
     if len(parts) == 2:
-        id_comp = parts[0]
-        id_squadra = parts[1]
-    get_frotei(id_comp,id_squadra)   
+        id_squadra = parts[0]
+        id_area = parts[1]
+    get_frotei_nazionali(id_squadra,id_area)   
 
 
 
