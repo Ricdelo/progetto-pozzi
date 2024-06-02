@@ -1,0 +1,1 @@
+Questo bot restituirà tutti i trofei che ha vinto una squadra dei top 5 campionati europei, per far funzionare il bot bisogna installare la libreria flask, request, telebot e pyTelegramBotAPI  attraverso pip (package installer for Python), poi bisogna creare il bot su telegram da botfather, prendere il token e inserirlo in config.py
