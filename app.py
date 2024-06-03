@@ -22,9 +22,37 @@ def scelta_competionze():
     markup.add(button3,button4,button5)
     return markup
 
+#funzione per calolare una squadre quante volte ha vinto una competizione
+#params: json con tutte le squadre che hanno vinto la competizione, id della squadra di cui vengono ritornate le volte che ha vinto
+def count_winner(data, id_squadra):
+    count = 0
+    for season in data['seasons']:
+        if season['winner'] and season['winner']['id'] == id_squadra:
+            count += 1
+    return count
+
+#funzione per calcolare i trofei di una squadra
+#params: id della squadra e lista contenente code e nome della competizione
+def get_trofei(id_squadra, comps):
+    
+    codes = [tup[0] for tup in comps]
+    for code in codes:
+        url=f"http://api.football-data.org/v4/competitions/{code}"
+        headers = {'X-Auth-Token': API_TOKEN}
+        
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            #se richiesta va a buon fine salva tutti i team in una lista
+            data = response.json()
+            count_winner(data,id_squadra)
+            
+        
+    
+    
+
 #funzione per prendere i trofei vinto nazionali
-def get_frotei_nazionali(id_squadra,id_area):
-    print(id_squadra+"  "+id_area)
+def get_competizioniNaz(id_area):
+    #print(id_squadra+"  "+id_area)
     url="http://api.football-data.org/v4/competitions"
     headers = {'X-Auth-Token': API_TOKEN}
     params = {'areas': id_area}
@@ -33,10 +61,18 @@ def get_frotei_nazionali(id_squadra,id_area):
     if response.status_code == 200:
         #se richiesta va a buon fine salva tutti i team in una lista
         data = response.json()
+        competitions = data.get('competitions', [])
+        competition_info = [(comp['code'], comp['name']) for comp in competitions]
+        #print(competition_info)
+        return competition_info
+
+    else:
+        print(f"Errore {response.status_code}: {response.text}")
+        return None
     
 
 #funzione per resituore le squadre di una competizione
-def competizione(comp):
+def get_squadre_competizione(comp):
     base_url = 'https://api.football-data.org/v4/competitions'
     
     url = f'{base_url}/{comp}/teams'
@@ -56,14 +92,13 @@ def competizione(comp):
             teams.append((area_id, id_squadra, nome_squadra))
         return teams
     else:
-        # In caso di errore, stampare il codice di stato e il testo della risposta
         print(f"Errore {response.status_code}: {response.text}")
         return None
 
 #funzione per creare i bottoni con i nomi delle squadre params: id della competione    
 def crea_bottoni(comp):
     markup = telebot.types.InlineKeyboardMarkup()
-    for team in competizione(comp):
+    for team in get_squadre_competizione(comp):
         area_id=team[0] #l id dell'area serve per calcolare i trofei della nazione di una squadra
         id_squadra = team[1]
         nome_squadra = team[2]
@@ -74,12 +109,14 @@ def crea_bottoni(comp):
 #funzione per gestire le callback dei bottoni
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-    #come call data viene passata un astringa con competizione e id della squadra
+    #come call data viene passata una stringa con competizione e id della squadra
     parts = call.data.split(',')
     if len(parts) == 2:
         id_squadra = parts[0]
         id_area = parts[1]
-    get_frotei_nazionali(id_squadra,id_area)   
+    competizioni=get_competizioniNaz(id_area)
+    get_trofei(id_squadra,competizioni)
+       
 
 
 
