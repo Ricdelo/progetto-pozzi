@@ -35,16 +35,23 @@ def count_winner(data, id_squadra):
 #params: id della squadra e lista contenente code e nome della competizione
 def get_trofei(id_squadra, comps):
     
+    s="" #stringa per i trofei 
     codes = [tup[0] for tup in comps]
+    codes.append('CL')  #aggiungo champions league (trofeo europeo)
+    codes.append('EC')  #aggiungo europa league (trofeo europeo)
     for code in codes:
         url=f"http://api.football-data.org/v4/competitions/{code}"
         headers = {'X-Auth-Token': API_TOKEN}
         
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            #se richiesta va a buon fine salva tutti i team in una lista
+            #se richiesta va a buon fine 
             data = response.json()
-            count_winner(data,id_squadra)
+            if(code =='CL' or code=='EC'):
+                s+="🏆🇪🇺"+data['name']+": "+str(count_winner(data,id_squadra))
+            s+="🏆"+data['name']+": "+str(count_winner(data,id_squadra))
+    return s
+    
             
         
     
@@ -59,7 +66,7 @@ def get_competizioniNaz(id_area):
     
     response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
-        #se richiesta va a buon fine salva tutti i team in una lista
+        #se richiesta va a buon fine 
         data = response.json()
         competitions = data.get('competitions', [])
         competition_info = [(comp['code'], comp['name']) for comp in competitions]
@@ -117,8 +124,6 @@ def callback_query(call):
     competizioni=get_competizioniNaz(id_area)
     get_trofei(id_squadra,competizioni)
        
-
-
 
 
 #"/start"
