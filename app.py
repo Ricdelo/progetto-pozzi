@@ -4,8 +4,11 @@ import requests
 import messaggi
 import config
 
-BOT_TOKEN = config.TOKEN_BOT
 API_TOKEN=config.TOKEN_API
+BOT_TOKEN=config.TOKEN_BOT
+
+
+chat_id=0  #id chat telegram per far inviare i messaggi al bot
 
 # Crea un'istanza dell'oggetto Bot
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -48,8 +51,9 @@ def get_trofei(id_squadra, comps):
             #se richiesta va a buon fine 
             data = response.json()
             if(code =='CL' or code=='EC'):
-                s+="🏆🇪🇺"+data['name']+": "+str(count_winner(data,id_squadra))
-            s+="🏆"+data['name']+": "+str(count_winner(data,id_squadra))
+                s+="🏆🇪🇺"+data['name']+": "+str(count_winner(data,id_squadra))+"\n"
+            else:
+                s+="🏆"+data['name']+": "+str(count_winner(data,id_squadra))+"\n"
     return s
     
             
@@ -122,7 +126,7 @@ def callback_query(call):
         id_squadra = parts[0]
         id_area = parts[1]
     competizioni=get_competizioniNaz(id_area)
-    get_trofei(id_squadra,competizioni)
+    invia_messaggio(chat_id,get_trofei(id_squadra,competizioni))
        
 
 
@@ -131,6 +135,8 @@ def callback_query(call):
 def start_command(message):
     
     bot.send_message(message.chat.id, messaggi.mss_introduzione_bot())    
+    global chat_id
+    chat_id =message.chat.id
     bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=scelta_competionze())
     
 #scelta competione
@@ -150,7 +156,8 @@ def option_selected(message):
     elif selected_option == "🇫🇷Ligue 1":
         bot.send_message(message.chat.id, messaggi.mss_competizione(), reply_markup=crea_bottoni("FL1"))
     
-        
+def invia_messaggio(chat_id,messaggio):
+    bot.send_message(chat_id, messaggio)
         
         
 # Avvia il bot
